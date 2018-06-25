@@ -1,7 +1,7 @@
 ﻿import sys
 import os
 import pickle
-
+import matplotlib.pyplot as plt
 import numpy 
 import pandas as pd
 
@@ -12,7 +12,7 @@ with open("final_project_dataset.pkl", "r") as data_file:
     data_dict = pickle.load(data_file)
 
 ## PASO 2 - VISUALIZAMOS LA DATA
-## A) UN RESUMEN de LAS PRIMERAS 3 ENTIDADES (EMPLEADOS DE ENRON)
+## A) UN RESUMEN de LAS PRIMERAS 3 FILAS DEL ARCHIVO
 print('-------------------------Visualizar la Data Inicial-------------------')
 import itertools
 iterator = iter(data_dict.items())
@@ -99,7 +99,7 @@ print("Nro de totales que no cuadran"), (counter)
 ## LOS TOTALES DE 2 PERSONAS NO CUADRAN BHATNAGAR SANJAY and BELFER ROBERT
 ## SI OBSERVAMOS LA DATA VEMOS QUE LOS DATOS DE BELFER SE HAN CORRIDO UNO A
 ## LA IZAQUIRDA, Y DEL OTRO A LA DERECHA
-## 1) CORREGIMOS LA DATA DE ROBERT BELFER
+## A. CORREGIMOS LA DATA DE ROBERT BELFER
 ## QUEREMOS LAS COLUMNAS DE DATOS FINANCIEROS (LA COLUMNA 0 NO ES DATO FINANCIERO)
 belfer_errores = df.ix['BELFER ROBERT', 1:15].tolist()
 ##  CORRER LA DATA A LA IZQUIERDA
@@ -107,7 +107,7 @@ belfer_errores.pop(0) ## BORAMOS LA COLUMNA 1
 belfer_errores.append(0) ## ANEXAMOS UNA COLUMNA AL FINAL PARA TOTAL_STOCK_VALUE (=0)
 ## REINSERTAMOS LA DATA CORREGIDA
 df.ix['BELFER ROBERT', 1:15] = belfer_errores
-## 2) CORREGIMOS LA DATA DE BHANTNAGER SANJAY CORRIENDOLA A LA DERECHA
+## B.  CORREGIMOS LA DATA DE BHANTNAGER SANJAY CORRIENDOLA A LA DERECHA
 ## BORRAMOS LA COLUMNA 15, Y ANADIMOS UNA NUEVA COLUMNA QUE SERA LA COLUMNA UNO (=0)
 sanjay_errores = df.ix['BHATNAGAR SANJAY', 1:15].tolist()
 sanjay_errores.pop(-1) ## BORRAMOS LA ULTIMA COLUMNA (15)
@@ -117,7 +117,7 @@ df.ix['BHATNAGAR SANJAY', 1:15] = sanjay_errores
 counter = 0
 for person_name, row in df.iterrows():
     
-    ## SUMAMOS LA DATA DE PAGOS Y VEMOS SI CUADRA CON total_payments
+    ## CONFIRMAMOS QUE LOS ERRORES EN SUMATORIA DE TOTAL_PAYMENTS HAN SIDO CORREGIDOS
     total_payment_data = row[datos_finanzas[:9]].sum()
     
     if total_payment_data != row['total_payments']:
@@ -128,21 +128,39 @@ print("Nro de totales que no cuadran"), (counter)
 ## HACEMOS EL MISMO CHEQUEO DE SUMATORIA PARA DATOS DE STOCK
 counter = 0
 for person_name, row in df.iterrows():
-    ##print "chequeando total de pagos...", row[features_financieros[:-5]].sum()
-    ## SUMAMOS LA DATA DE PAGOS Y VEMOS SI CUADRA CON total_payments
+    
+    ## SUMAMOS LA DATA DE PAGOS Y VEMOS SI CUADRA CON total_stock_value
     total_stock_data = row[datos_finanzas[10:-1]].sum()
     
     if total_stock_data != row['total_stock_value']:
         print "Totales para esta persona no cuadran: ", person_name
         counter += 1
-print("Nro de totales que no cuadran"), (counter)
-
+print("Nro de totales de que no cuadran"), (counter)
+## EL OUPUT NOS DICE QUE NO HAY ERRORES DE SUMTORIA DE total_stock_value
 
 
 ## PASO 7 - ELIMINAR OTROS OUTLIERS NO TAN OBVIOS
-## VEMOS LAS ESTADISTICAS OTRA VEZ
+## VISUALIZAMOS UN SCATTERPLOT QUE MUESTRA OUTLIERS
+## LOS POIS (SOSPECHOSOS) LOS MARCAREMOS CON ASTERISCOS ROJOS
+## LOS NO POIS LOS MARCAREMIS CON ASTERISCOS AZULES
+for person_name, row in df.iterrows():
+    ## SI LA PERSONA ES UN POI MARCAMOS CON * COLOR ROJO
+    ## DE LO CONTRARIO MARCAMOS CON + COLOR AZUL
+    if row['poi'] == 1:
+        plt.scatter(row['total_stock_value'], row['total_payments'], color="r", marker="*")
+    else:
+        plt.scatter(row['total_stock_value'], row['total_payments'], color="b", marker="+")
+           
+plt.xlabel('total_stock_value')
+plt.ylabel('total_payments')
+plt.savefig("image.png")
+plt.show()
+## COMO VEMOS EN EL SCATTERPLOT HAY UNAS PERSONAS CON TOTAL_STOCK_VALUE
+## DESPROPORCINADAMENTE ALTOS EN COMPARACION CON TOTAL_PAYMENTS
+## VEMOS QUE LA MAYORIA DE ESTOS SON OUTLIERS
+## CONFIRMAMOS ESTOS OUTLIERS VIENDO LAS ESTADISTICAS
 print(df.describe())
-## PARECE QUE TENEMOS ALGUNOS OUTLIERS
+## EFECTIVAMENTE HAY OUTLIERS EN TOTAL PAYMENTS VIENDO LOS QUANTILES 
 
 ## UTILIZAREMOS LA REGLA DE OUTLIERS USANDO EL IQR
 ## ULTIMO first_quartile+1.5 * IQR < OUTLIER < PRIMER third_quartile−1.5 * IQR
