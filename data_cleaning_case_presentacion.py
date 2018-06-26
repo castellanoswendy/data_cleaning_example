@@ -68,15 +68,20 @@ for key, value in data_dict.items():
 data_dict.pop("TOTAL", 0)
 
 ## PASO 4 - ORDENAMOS LA DATA
+## CREAMOS UN DATAFRAME
 df = pd.DataFrame.from_dict(data_dict, orient='index')
-
+## LLENAMOS LOS 'NAN' CON EL TIPO DE DATO numpy.nan
 df = df.replace('NaN', numpy.nan)
 
 ## ORDENAMOS LAS FEATURES PARA COMPARAR CON DCTO ORIGINAL Y FACILITAR RASTREO DE ERRORES
+## LA PRIMERA FEATURE O CARACTERISTICA ES LA ETIQUETA QUE INDICA SI EL EMPLEADO
+## ES SOSPECHOSO O NO. ESTA ETIQUETA ES LA UNICA QUE ES FIJA Y VERIFICADA PARA CADA
+## REGISTRO (EMPLEADO) ASI QUE NO NECESITAMOS 'LIMPIARLA' O CORREGIRLA
 features = ['poi'] + datos_finanzas + datos_email
+# USAMOS NUETRA LISTA DE FEATURES PARA PONERLE NOMBRE A LAS COLUMNAS DEL DATAFRAME 
 df = df[features]
 
-## LLENAMOS CON CEROS LA DATA NAN
+## LLENAMOS CON CEROS LA DATA QUE TIENE COMO VALOR  EL TIPO numpy.nan
 df[datos_finanzas] = df[datos_finanzas].fillna(value = 0)
 df[datos_email] = df[datos_email].fillna(value = 0)
 ## COMPROBAMOS QUE LOS 0'S HAN SIDO INSERTADOS EN VEZ DE 'NAN'
@@ -93,7 +98,7 @@ for person_name, row in df.iterrows():
     total_payment_data = row[datos_finanzas[:9]].sum()
     
     if total_payment_data != row['total_payments']:
-        print "Totales para esta persona no cuadran: ", person_name
+        print("Totales para esta persona no cuadran: "), (person_name)
         counter += 1
 print("Nro de totales que no cuadran"), (counter)
 ## LOS TOTALES DE 2 PERSONAS NO CUADRAN BHATNAGAR SANJAY and BELFER ROBERT
@@ -121,7 +126,7 @@ for person_name, row in df.iterrows():
     total_payment_data = row[datos_finanzas[:9]].sum()
     
     if total_payment_data != row['total_payments']:
-        print "Totales para esta persona no cuadran: ", person_name
+        print ("Totales para esta persona no cuadran: "), (person_name)
         counter += 1
 print("Nro de totales que no cuadran"), (counter)
 
@@ -133,7 +138,7 @@ for person_name, row in df.iterrows():
     total_stock_data = row[datos_finanzas[10:-1]].sum()
     
     if total_stock_data != row['total_stock_value']:
-        print "Totales para esta persona no cuadran: ", person_name
+        print("Totales para esta persona no cuadran: "), (person_name)
         counter += 1
 print("Nro de totales de que no cuadran"), (counter)
 ## EL OUPUT NOS DICE QUE NO HAY ERRORES DE SUMTORIA DE total_stock_value
@@ -173,7 +178,7 @@ outliers = df[(df>(third_quartile + 1.5*IQR) ) | (df<(first_quartile - 1.5*IQR) 
 outliers[datos_finanzas] = outliers[datos_finanzas].fillna(value = 0)
 outliers[datos_email] = outliers[datos_email].fillna(value = 0)
 outliers = outliers.sort_values(datos_finanzas + ['from_poi_to_this_person','from_this_person_to_poi'] , axis=0,ascending=False)
-print "Lista de outliers"
+print ("Lista de outliers")
 print (outliers.head(12))
 
 ## ELIMINAMOS LOS OUTLIERS
